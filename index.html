@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>备忘录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 分类栏 -->
+    <div class="column" style="width: 200px;">
+        <div class="category-panel">
+            <p id="logo">笔记</p>
+            <p id="credit" class="sub-title">222200414 陈志琰</p>
+            <p class="category-button active">
+                <svg t="1736258119996" class="icon" viewBox="0 0 1879 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2358" width="200" height="200"><path d="M553.877457 906.654335v-141.021965L1053.891329 254.520231l88.19422 90.117919s27.819653 26.339884 54.455491 0 0-55.639306 0-55.639306l-115.421965-117.937572s-28.707514-26.191908-54.455491 0-534.048555 545.886705-534.048555 545.886705-15.685549 13.465896-15.685549 40.397688v188.67052s1.183815 33.442775 34.478612 39.36185h196.217342s17.313295-1.479769 33.590751-18.05318l614.843931-630.085549s96.776879-108.910983 5.623121-229.364161c0 0-91.449711-123.116763-238.094798-31.815029 0 0-30.927168 21.604624-31.223121 45.428901-0.295954 23.824277 21.308671 42.913295 44.09711 38.917919 0 0 11.83815-2.36763 21.456647-11.098265 0 0 54.603468-58.154913 126.224278-9.322544 0 0 43.061272 31.223121 38.769942 83.606937 0 0 5.475145 38.473988-51.495954 90.561849L691.791908 906.654335h-137.914451z" p-id="2359"></path></svg>
+                <span>全部笔记</span>
+            </p>
+            <p class="category-button deletable">
+                <svg t="1736259246834" class="icon" style="scale: 0.8;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3535" width="200" height="200"><path d="M214.699873 512m-87.440491 0a85.449 85.449 0 1 0 174.880983 0 85.449 85.449 0 1 0-174.880983 0ZM809.300127 512m-87.440491 0a85.449 85.449 0 1 0 174.880983 0 85.449 85.449 0 1 0-174.880983 0ZM512.005117 512m-87.440491 0a85.449 85.449 0 1 0 174.880983 0 85.449 85.449 0 1 0-174.880983 0Z" p-id="3536"></path></svg>
+                <span>未分类</span>
+                <svg t="1736259321165" class="delete-button" style="scale: 0.6;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4636" width="200" height="200"><path d="M944 192H755.2v-44.8c0-54.4-44.8-99.2-99.2-99.2H361.6c-54.4 0-99.2 44.8-99.2 99.2V192H83.2c-12.8 0-25.6 9.6-25.6 25.6 0 12.8 9.6 25.6 25.6 25.6H144v633.6c0 54.4 44.8 99.2 99.2 99.2h550.4c54.4 0 99.2-44.8 99.2-99.2V243.2H944c12.8 0 25.6-9.6 25.6-25.6-3.2-12.8-9.6-25.6-25.6-25.6z m-627.2-44.8c0-25.6 22.4-48 48-48h294.4c25.6 0 48 22.4 48 48V192H316.8v-44.8z m524.8 720c0 28.8-16 57.6-41.6 57.6H249.6c-25.6 0-54.4-19.2-54.4-44.8l3.2-636.8h643.2v624zM368 380.8c-16 0-25.6 9.6-25.6 25.6v342.4c0 16 12.8 25.6 25.6 25.6s25.6-9.6 25.6-25.6V406.4c-3.2-12.8-9.6-25.6-25.6-25.6z m160 0c-16 0-25.6 9.6-25.6 25.6v342.4c0 16 12.8 25.6 25.6 25.6s25.6-9.6 25.6-25.6V406.4c-3.2-12.8-9.6-25.6-25.6-25.6z m160 0c-16 0-25.6 9.6-25.6 25.6v342.4c0 16 12.8 25.6 25.6 25.6s25.6-9.6 25.6-25.6V406.4c-3.2-12.8-9.6-25.6-25.6-25.6z" p-id="4637"></path></svg>
+            </p>
+            <br>
+            <p class="category-button">
+                <svg t="1736263618472" class="icon" style="scale: 0.6;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5634" width="200" height="200"><path d="M512 890.688a48 48 0 0 1-48-48V181.312a48 48 0 0 1 96 0v661.376a48 48 0 0 1-48 48z" fill="#231815" p-id="5635"></path><path d="M842.688 560H181.312a48 48 0 0 1 0-96h661.376a48 48 0 0 1 0 96z" p-id="5636"></path></svg>
+                <span>新增分类</span>
+            </p>
+            <br>
+            <p class="category-button">
+                <svg t="1736259321165" class="icon" style="scale: 0.6;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4636" width="200" height="200"><path d="M944 192H755.2v-44.8c0-54.4-44.8-99.2-99.2-99.2H361.6c-54.4 0-99.2 44.8-99.2 99.2V192H83.2c-12.8 0-25.6 9.6-25.6 25.6 0 12.8 9.6 25.6 25.6 25.6H144v633.6c0 54.4 44.8 99.2 99.2 99.2h550.4c54.4 0 99.2-44.8 99.2-99.2V243.2H944c12.8 0 25.6-9.6 25.6-25.6-3.2-12.8-9.6-25.6-25.6-25.6z m-627.2-44.8c0-25.6 22.4-48 48-48h294.4c25.6 0 48 22.4 48 48V192H316.8v-44.8z m524.8 720c0 28.8-16 57.6-41.6 57.6H249.6c-25.6 0-54.4-19.2-54.4-44.8l3.2-636.8h643.2v624zM368 380.8c-16 0-25.6 9.6-25.6 25.6v342.4c0 16 12.8 25.6 25.6 25.6s25.6-9.6 25.6-25.6V406.4c-3.2-12.8-9.6-25.6-25.6-25.6z m160 0c-16 0-25.6 9.6-25.6 25.6v342.4c0 16 12.8 25.6 25.6 25.6s25.6-9.6 25.6-25.6V406.4c-3.2-12.8-9.6-25.6-25.6-25.6z m160 0c-16 0-25.6 9.6-25.6 25.6v342.4c0 16 12.8 25.6 25.6 25.6s25.6-9.6 25.6-25.6V406.4c-3.2-12.8-9.6-25.6-25.6-25.6z" p-id="4637"></path></svg>
+                <span>垃圾箱</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- 笔记栏 -->
+    <div class="column" style="width: 300px;">
+        <div class="panel note-panel">
+            <div style="padding: 20px;">
+                <div class="row" style="margin-bottom: 10px;">
+                    <input placeholder="搜索笔记..." style="flex-grow: 1;">
+                    <span class="button">搜索</span>
+                </div>
+                <p class="sub-title" style="margin-left: 10px;">共 4 条笔记</p>
+            </div>
+            <p class="note-item active">笔记111</p>
+            <p class="note-item">笔记2</p>
+            <p class="note-item">笔记3</p>
+            <p class="note-item">笔记4</p>
+        </div>
+    </div>
+
+    <!-- 编辑栏 -->
+    <div class="column" style="flex-grow: 1;">
+        <div class="panel edit-panel">
+            <input class="title-input" placeholder="请输入标题" style="width: 100%;">
+            <div style="flex-grow: 1; padding-bottom: 100px;">
+                <textarea id="markdown-editor"></textarea>
+            </div>
+            <p class="sub-title" style="margin-bottom: 20px;">最后编辑时间：2025/1/7 22:30</p>
+            <div class="row" style="margin-bottom: 10px; justify-content: end;">
+                <span class="button danger-button loose-button">删除</span>
+                <span class="button loose-button">保存</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息框 -->
+    <div id="msgbox" class="cover-screen" style="display: none;">
+        <div class="dialog">
+            <p id="msgbox-title" style="font-size: 20px;">⚠ 确认要删除这条笔记？</p>
+            <p id="msgbox-content" style="color: gray;">此操作不可逆！</p>
+            <br>
+            <br>
+            <div class="row" style="margin-bottom: 10px; justify-content: end; gap: 25px;">
+                <span id="msgbox-yes" class="button danger-button loose-button">确定删除</span>
+                <span id="msgbox-no" class="button loose-button">我再想想</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输入框 -->
+    <div id="inputbox" class="cover-screen" style="display: none;">
+        <div class="dialog">
+            <p id="inputbox-title" style="font-size: 20px;">请输入新分类的名称</p>
+            <input placeholder="请输入..." style="width: 100%;">
+            <br>
+            <br>
+            <div class="row" style="margin-bottom: 10px; justify-content: end; gap: 25px;">
+                <span class="button loose-button">取消</span>
+                <span id="inputbox-ok" class="button loose-button">创建分类</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.js"></script>
+    <script>
+        var mdEditor = new SimpleMDE(
+            {
+                element: document.getElementById("markdown-editor"),
+                spellChecker: false
+            });
+    </script>
+</body>
+</html>

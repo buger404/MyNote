@@ -1,0 +1,267 @@
+@font-face {
+    font-family: "阿里妈妈数黑体 Bold";
+    src: url("font/AlimamaShuHeiTi-Bold.woff2") format("woff2"),
+         url("font/AlimamaShuHeiTi-Bold.woff") format("woff"),
+         url("font/AlimamaShuHeiTi-Bold.ttf") format("truetype");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "阿里妈妈灵动体 VF Thin";
+    src: url("font/AlimamaAgileVF-Thin.woff2") format("woff2"),
+         url("font/AlimamaAgileVF-Thin.woff") format("woff"),
+         url("font/AlimamaAgileVF-Thin.ttf") format("truetype");
+    font-display: swap;
+}
+
+* {
+    font-family: "阿里妈妈灵动体 VF Thin", "阿里妈妈数黑体 Bold", serif;
+    font-weight: 400;
+}
+
+p {
+    font-size: 16px;
+}
+
+body{
+    background-color: #F4F4F4;
+    display: flex;
+    min-width: 1024px;
+    height: 100%;
+    margin: 0;
+    padding: 25px;
+    gap: 25px;
+    overflow-y: hidden;
+}
+
+.column{
+    height: calc(100vh - 50px);
+}
+
+.row{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.column{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+.button{
+    background-color: white;
+    color: black;
+    border-radius: 100px;
+    outline: gray solid 1px;
+    border: none;
+    font-size: 14px;
+    padding: 7px 15px;
+    transition: all 0.5s;
+    cursor: pointer;
+    margin-top: 0;
+}
+
+.button:hover{
+    background-color: black;
+    color: white;
+    transition: all 0.5s;
+}
+
+.danger-button:hover{
+    background-color: #f74c30;
+    outline: #f74c30 solid 1px;
+    color: white;
+}
+
+.loose-button{
+    padding: 7px 30px;
+}
+
+#logo{
+    font-weight: 700;
+    font-size: 28px;
+    margin-block-start: 0;
+    margin-block-end: 5px;
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+#credit{
+    margin-left: 20px;
+    margin-bottom: 30px;
+}
+
+.sub-title{
+    font-weight: 400;
+    font-size: 14px;
+    margin-block-start: 0;
+    color: gray;
+    margin-bottom: 0;
+}
+
+.panel{
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+}
+
+.note-panel{
+    padding: 0;
+}
+
+.edit-panel{
+    display: flex;
+    flex-direction: column;
+}
+
+.category-panel{
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.note-item{
+    padding: 10px 15px 10px 30px;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 0;
+    color: black;
+    cursor: pointer;
+    scale: 1;
+    margin-top: 0;
+    margin-bottom: 6px;
+    transition: all 0.5s;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0);
+}
+
+.category-button{
+    padding: 4px 15px;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 100px;
+    color: black;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    scale: 1;
+    transition: all 0.5s;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0);
+    overflow: hidden;
+}
+
+.category-button span{
+    flex-grow: 1;
+}
+
+.active{
+    background-color: black;
+    color: white;
+    transition: all 0.25s;
+}
+
+.active svg{
+    fill: white;
+}
+
+.category-button svg{
+    rotate: 0deg;
+    transition: all 0.5s;
+}
+
+.category-button:hover{
+    scale: 1.1;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s;
+}
+
+.category-button:hover svg{
+    rotate: 360deg;
+    transition: all 0.5s;
+}
+
+.deletable:hover .icon{
+    margin-left: -36px;
+    opacity: 0;
+    transition: all 0.5s;
+}
+
+.deletable:hover .delete-button{
+    margin-right: 0;
+    opacity: 1;
+    transition: all 0.5s;
+}
+
+.delete-button{
+    margin-right: -36px;
+    width: 36px;
+    height: 36px;
+    fill: black;
+    opacity: 0;
+    transition: all 0.5s;
+}
+
+.icon{
+    width: 36px;
+    height: 36px;
+    fill: black;
+}
+
+.CodeMirror{
+    height: 100%;
+}
+
+.title-input {
+    font-size: 16px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+input {
+    display: block;
+    border-radius: 100px;
+    outline: gray solid 1px;
+    border: none;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0);
+    font-size: 14px;
+    padding: 7px 10px;
+    transition: all 0.5s;
+    box-sizing: border-box;
+}
+
+input:hover, input:focus {
+    border-radius: 100px;
+    outline: black solid 1px;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s;
+}
+
+.cover-screen {
+    position: absolute;
+    z-index: 999999;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+}
+
+.dialog {
+    margin: 0 auto;
+    background-color: white;
+    width: 600px;
+    height: 200px;
+    border-radius: 20px;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.5);
+    padding: 10px 35px;
+}
