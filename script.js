@@ -4,10 +4,12 @@ var mdEditor = new SimpleMDE(
         spellChecker: false
     });
 
+// 基本分类常量
 const CATEGORY_ALL = "all";
 const CATEGORY_OTHER = "other";
 const CATEGORY_DUSTBIN = "dustbin";
 
+// 消息框封装
 class MessageBox{
     constructor(element){
         this.box = element;
@@ -20,6 +22,7 @@ class MessageBox{
         this.noBtn.onclick = () => this.finish(false);
     }
 
+    // 弹出对话框
     show(title, content, callback = null, yesBtn = "确定", noBtn = ""){
         if (noBtn === ""){
             this.yesBtn.style.display = "none";
@@ -36,6 +39,7 @@ class MessageBox{
         this.callback = callback;
     }
 
+    // 内部完成回调
     finish(operation) {
         this.box.style.display = "none";
         if (this.callback != null) {
@@ -44,6 +48,7 @@ class MessageBox{
     }
 }
 
+// 输入框封装
 class InputBox{
     constructor(element){
         this.box = element;
@@ -56,6 +61,7 @@ class InputBox{
         this.okBtn.onclick = () => this.finish(this.inputBox.value);
     }
 
+    // 弹出输入框
     show(title, callback = null, okBtn = "确定", defaultInput = ""){
         this.inputBox.value = defaultInput;
 
@@ -66,6 +72,7 @@ class InputBox{
         this.callback = callback;
     }
 
+    // 内部完成回调
     finish(input) {
         this.box.style.display = "none";
         if (this.callback != null) {
@@ -74,14 +81,16 @@ class InputBox{
     }
 }
 
+// 笔记管理器
 class NoteManager{
-    categoryDict = new Map();
-    noteDict = new Map();
-    noteDirty = new Map();
-    lastSelectedNote;
-    lastSelectedCategory;
-    currentCategory;
-    currentNote = "";
+    categoryDict = new Map();   // 分类 id -> element
+    noteDict = new Map();       // 笔记 id -> element
+    noteDirty = new Map();      // 笔记 id -> bool，记录笔记是否是脏的
+
+    lastSelectedNote;           // 上次选择的笔记的 element
+    lastSelectedCategory;       // 上次选择的分类的 element
+    currentCategory;            // 当前分类 ID
+    currentNote = "";    // 当前笔记 ID
 
     constructor(storageKey) {
         this.categoryTemplate = document.getElementById("custom-category-template");
@@ -105,8 +114,9 @@ class NoteManager{
         this.loadCategories();
         this.loadNotes();
 
-        const specialCategories = [CATEGORY_ALL, CATEGORY_OTHER, CATEGORY_DUSTBIN];
-        for(let category of specialCategories){
+        // 初始化基本分类
+        const basicCategories = [CATEGORY_ALL, CATEGORY_OTHER, CATEGORY_DUSTBIN];
+        for(let category of basicCategories){
             let node = document.getElementById("category-" + category);
             this.categoryDict.set(category, node);
             node.onclick = () => {
@@ -115,9 +125,11 @@ class NoteManager{
         }
         this.selectCategory(CATEGORY_ALL);
 
+        // 注册编辑器内容改变回调，更新笔记脏状态
         mdEditor.codemirror.on("change", () => this.updateDirtyState());
     }
 
+    // 删除笔记
     deleteNote(id){
         const index = this.notes.findIndex(x => x.id === id);
         if (index !== -1) {
@@ -128,6 +140,7 @@ class NoteManager{
         return false;
     }
 
+    // 移动笔记分类
     moveNoteCategory(noteId, category){
         const note = this.getNoteById(noteId);
         if (note) {
@@ -138,6 +151,7 @@ class NoteManager{
                 category: category
             });
             let render = this.noteDict.get(noteId);
+            // 如果对应笔记在显示中，应该移掉它
             if (render && (this.currentCategory !== CATEGORY_ALL || category === CATEGORY_DUSTBIN)){
                 render.parentNode.removeChild(render);
                 this.noteDict.delete(noteId);
@@ -147,17 +161,20 @@ class NoteManager{
         }
     }
 
+    // 更新当前笔记脏状态
     updateDirtyState(){
         if (this.currentNote !== ""){
             this.noteDirty.set(this.currentNote, true);
         }
     }
 
+    // 检查当前笔记是不是脏的
     checkCurrentNoteDirty(callback){
         if (this.currentNote === ""){
             callback();
             return;
         }
+        // 如果是脏的，则先询问是否放弃修改
         if (this.noteDirty.get(this.currentNote)){
             msgBox.show("当前笔记未保存", "内容尚未保存，您确定要离开吗？", (operation) => {
                 if (operation){
@@ -170,10 +187,12 @@ class NoteManager{
         }
     }
 
+    // 获取笔记
     getNoteById(id) {
         return this.notes.find(x => x.id === id);
     }
 
+    // 更新当前笔记
     updateCurrentNote(){
         const note = this.getNoteById(this.currentNote);
         if (note) {
@@ -183,6 +202,7 @@ class NoteManager{
                 lastModified: new Date().toISOString()
             });
             this.noteDirty.set(this.currentNote, false);
+            // 更新标题
             let render = this.noteDict.get(this.currentNote);
             if (render){
                 render.innerText = note.title || "未命名笔记";
@@ -192,15 +212,18 @@ class NoteManager{
         }
     }
 
+    // 选择笔记
     selectNote(note){
         if (this.currentNote === note?.id){
             return;
         }
         this.checkCurrentNoteDirty(() => {
+            // 更新样式
             if (this.lastSelectedNote != null && this.lastSelectedNote){
                 this.lastSelectedNote.classList.remove("active");
             }
             if (note == null){
+                // 如果不选择笔记，则是关闭笔记编辑器
                 this.lastSelectedNote = null;
                 this.currentNote = "";
                 this.noneEditPanel.style.display = "flex";
@@ -210,22 +233,25 @@ class NoteManager{
             this.lastSelectedNote = this.noteDict.get(note.id);
             this.lastSelectedNote.classList.add("active");
             this.currentNote = note.id;
+
+            // 初始化编辑器
             this.noneEditPanel.style.display = "none";
             this.editPanel.style.display = "flex";
             this.noteTitle.value = note.title;
             mdEditor.value(note.content);
-            this.noteDirty.set(note.id, false);
+            this.noteDirty.set(note.id, false); // 由于设置编辑器内容时会触发一次 脏状态 更新，这里要设置一次
             this.editorTextArea.disabled = note.category === CATEGORY_DUSTBIN;
 
             this.normalEditToolbar.style.display = (note.category === CATEGORY_DUSTBIN) ? "none" : "flex";
             this.dustbinEditToolbar.style.display = (note.category === CATEGORY_DUSTBIN) ? "flex" : "none";
 
-            mdEditor.codemirror.refresh();
+            mdEditor.codemirror.refresh(); // 没有这行的话，编辑器内容显示不完全
 
             this.noteEditTime.innerText = `最后编辑时间：${note.lastModified}`;
         });
     }
 
+    // 加载全部笔记
     loadNotes(){
         const noteJson = localStorage.getItem(this.noteStorageKey);
         this.notes = noteJson ? JSON.parse(noteJson) : [];
@@ -234,14 +260,17 @@ class NoteManager{
         }
     }
 
+    // 保存笔记
     saveNotes(){
         localStorage.setItem(this.noteStorageKey, JSON.stringify(this.notes));
     }
 
+    // 更新笔记信息
     updateNoteInfo(){
         this.noteInfo.innerText = `共 ${this.noteContainer.childNodes.length - 1} 条笔记`;
     }
 
+    // 创建笔记
     createNote(title = "", content = "") {
         let category = this.currentCategory;
         if (category === CATEGORY_ALL){
@@ -263,12 +292,14 @@ class NoteManager{
         return note;
     }
 
+    // 显示某个分类的全部笔记
     renderNotes(category){
         for(let note of this.noteDict.values()){
             note.parentNode.removeChild(note);
         }
         this.noteDict.clear();
         let notes = this.notes.filter(x => {
+            // 由于 回收站 是一个特殊分类，全部分类要过滤掉 回收站
             if (category === CATEGORY_ALL){
                 return x.category !== CATEGORY_DUSTBIN;
             }
@@ -280,6 +311,7 @@ class NoteManager{
         }
     }
 
+    // 显示单个笔记
     renderNote(note){
         var node = document.createElement("p");
         node.classList.add("note-item")
@@ -287,6 +319,7 @@ class NoteManager{
         node.onclick = () => {
             this.selectNote(note);
         }
+        // 如果是当前正在编辑的笔记，更新样式
         if (note.id === this.currentNote){
             node.classList.add("active");
             this.lastSelectedNote = node;
@@ -295,6 +328,7 @@ class NoteManager{
         this.noteContainer.appendChild(node);
     }
 
+    // 选择分类
     selectCategory(id) {
         if (this.lastSelectedCategory != null){
             this.lastSelectedCategory.classList.remove("active");
@@ -302,15 +336,18 @@ class NoteManager{
         this.lastSelectedCategory = this.categoryDict.get(id);
         this.lastSelectedCategory.classList.add("active");
         this.currentCategory = id;
+        // 回收站不显示 创建笔记 按钮
         this.createNoteButton.style.display = (id === CATEGORY_DUSTBIN) ? "none" : "block";
         this.renderNotes(id);
     }
 
+    // 删除分类
     deleteCategory(id) {
         const index = this.categories.findIndex(x => x.id === id);
         if (index !== -1) {
             this.categories.splice(index, 1);
             this.saveCategory();
+            // 将分类下全部笔记移动至未分类
             for(let note of this.notes.filter(x => x.category === id)){
                 note.category = CATEGORY_OTHER;
             }
@@ -320,6 +357,7 @@ class NoteManager{
         return false;
     }
 
+    // 创建分类
     createCategory(title){
         const category = {
             id: Date.now(),
@@ -331,6 +369,7 @@ class NoteManager{
         return category;
     }
 
+    // 读取全部分类
     loadCategories(){
         const categoryJson = localStorage.getItem(this.categoryStorageKey);
         this.categories = categoryJson ? JSON.parse(categoryJson) : [];
@@ -339,15 +378,18 @@ class NoteManager{
         }
     }
 
+    // 保存分类
     saveCategory(){
         localStorage.setItem(this.categoryStorageKey, JSON.stringify(this.categories));
     }
 
+    // 显示分类
     renderCategory(category){
         var node = this.categoryTemplate.cloneNode(true);
         node.id = "";
         node.style.display = "flex";
         node.querySelector("span").innerText = category.title;
+        // 编辑分类名称
         node.querySelector(".edit-button").addEventListener("click", (event) => {
             event.stopPropagation();
             inputBox.show("修改分类名称", (name) => {
@@ -360,6 +402,7 @@ class NoteManager{
                 this.saveCategory();
             }, "确定修改", category.title);
         });
+        // 删除分类
         node.querySelector(".delete-button").addEventListener("click", (event) => {
             event.stopPropagation();
             msgBox.show("⚠ 确认要删除这个分类？", "该分类下的笔记将移动至【未分类】，此操作不可逆！", (op) => {
@@ -387,6 +430,7 @@ var inputBox = new InputBox(document.getElementById("inputbox"));
 
 var noteManager = new NoteManager("myNote");
 
+// 创建分类
 function createCategory(){
     inputBox.show("请输入新分类的名称", (name) => {
         if (name == null || name === ""){
@@ -397,14 +441,17 @@ function createCategory(){
     }, "创建分类");
 }
 
+// 创建笔记
 function createNote(){
     noteManager.createNote();
 }
 
-function updateNote(){
+// 保存当前笔记
+function saveCurrentNote(){
     noteManager.updateCurrentNote();
 }
 
+// 移动当前笔记到回收站
 function moveCurrentNoteToDustbin(){
     noteManager.checkCurrentNoteDirty(() => {
         msgBox.show("⚠ 确定要删除这条笔记？", "笔记将放置到回收站中，您稍后可以在回收站中找回。", (op) => {
@@ -417,6 +464,7 @@ function moveCurrentNoteToDustbin(){
     });
 }
 
+// 还原当前笔记
 function moveOutCurrentNoteFromDustbin(){
     noteManager.checkCurrentNoteDirty(() => {
         noteManager.moveNoteCategory(noteManager.currentNote, CATEGORY_OTHER);
@@ -425,6 +473,7 @@ function moveOutCurrentNoteFromDustbin(){
     });
 }
 
+// 真正地删除笔记
 function deleteCurrentNote(){
     msgBox.show("⚠ 确认要删除这条笔记？", "此操作不可逆！", (op) => {
         if (!op){
