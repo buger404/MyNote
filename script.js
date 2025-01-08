@@ -147,7 +147,10 @@ class NoteManager{
                 lastModified: new Date().toISOString()
             });
             this.noteDirty.set(this.currentNote, false);
-            this.noteDict.get(this.currentNote).innerText = note.title || "未命名笔记";
+            let render = this.noteDict.get(this.currentNote);
+            if (render){
+                render.innerText = note.title || "未命名笔记";
+            }
             this.saveNotes();
             this.selectNote(null);
         }
@@ -158,7 +161,7 @@ class NoteManager{
             return;
         }
         this.checkCurrentNoteDirty(() => {
-            if (this.lastSelectedNote != null){
+            if (this.lastSelectedNote != null && this.lastSelectedNote){
                 this.lastSelectedNote.classList.remove("active");
             }
             if (note == null){
@@ -222,8 +225,6 @@ class NoteManager{
             note.parentNode.removeChild(note);
         }
         this.noteDict.clear();
-        this.currentNote = "";
-        this.lastSelectedNote = null;
         this.createNoteButton.style.display = (category === "dustbin") ? "none" : "block";
         let notes = this.notes.filter(x => x.category === category || category === "all");
         this.noteInfo.innerText = `共 ${notes.length} 条笔记`;
@@ -238,6 +239,10 @@ class NoteManager{
         node.innerText = note.title || "未命名笔记";
         node.onclick = () => {
             this.selectNote(note);
+        }
+        if (note.id === this.currentNote){
+            node.classList.add("active");
+            this.lastSelectedNote = node;
         }
         this.noteDict.set(note.id, node);
         this.noteContainer.appendChild(node);
