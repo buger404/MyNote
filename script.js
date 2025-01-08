@@ -104,6 +104,8 @@ class NoteManager{
         this.createNoteButton = document.getElementById("note-create-button");
         this.editorTextArea = mdEditor.codemirror.display.wrapper.querySelector("textarea");
 
+        this.exportLink = document.getElementById("export-md-link");
+
         this.noneEditPanel = document.getElementById("none-edit-panel");
         this.editPanel = document.getElementById("edit-panel");
 
@@ -253,8 +255,22 @@ class NoteManager{
 
             mdEditor.codemirror.refresh(); // 没有这行的话，编辑器内容显示不完全
 
+            this.setExportLink(note);
+
             this.noteEditTime.innerText = `最后编辑时间：${note.lastModified}`;
         });
+    }
+
+    // 设置导出链接
+    setExportLink(note){
+        if (this.exportLink.href){
+            URL.revokeObjectURL(this.exportLink.href); // 防止内存泄露
+        }
+
+        const blob = new Blob([note.content], { type: "text/markdown" });
+
+        this.exportLink.href = URL.createObjectURL(blob); // 将 Blob 转换为 URL
+        this.exportLink.download = note.title + ".md"; // 设置下载文件名
     }
 
     // 加载全部笔记
