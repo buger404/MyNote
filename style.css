@@ -197,6 +197,13 @@ body{
     fill: white;
 }
 
+.dragover {
+    outline: black solid 2px;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.2);
+    cursor: grab;
+    transition: all 0.25s;
+}
+
 .category-button svg{
     rotate: 0deg;
     transition: all 0.5s;

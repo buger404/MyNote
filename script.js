@@ -90,7 +90,7 @@ class NoteManager{
     lastSelectedNote;           // 上次选择的笔记的 element
     lastSelectedCategory;       // 上次选择的分类的 element
     currentCategory;            // 当前分类 ID
-    currentNote = "";    // 当前笔记 ID
+    currentNote = -1;   // 当前笔记 ID
 
     searchKeyword = "";  // 搜索关键字
 
@@ -123,6 +123,9 @@ class NoteManager{
             this.categoryDict.set(category, node);
             node.onclick = () => {
                 this.selectCategory(category);
+            }
+            if (category !== CATEGORY_ALL){
+                this.registerCategoryDragEvent(node, category);
             }
         }
         this.selectCategory(CATEGORY_ALL);
@@ -165,14 +168,14 @@ class NoteManager{
 
     // 更新当前笔记脏状态
     updateDirtyState(){
-        if (this.currentNote !== ""){
+        if (this.currentNote !== -1){
             this.noteDirty.set(this.currentNote, true);
         }
     }
 
     // 检查当前笔记是不是脏的
     checkCurrentNoteDirty(callback){
-        if (this.currentNote === ""){
+        if (this.currentNote === -1){
             callback();
             return;
         }
@@ -227,7 +230,7 @@ class NoteManager{
             if (note == null){
                 // 如果不选择笔记，则是关闭笔记编辑器
                 this.lastSelectedNote = null;
-                this.currentNote = "";
+                this.currentNote = -1;
                 this.noneEditPanel.style.display = "flex";
                 this.editPanel.style.display = "none";
                 return;
@@ -324,10 +327,15 @@ class NoteManager{
     renderNote(note){
         var node = document.createElement("p");
         node.classList.add("note-item")
+        node.draggable = true;
         node.innerText = note.title || "未命名笔记";
         node.onclick = () => {
             this.selectNote(note);
         }
+        // 支持拖拽
+        node.addEventListener('dragstart', (event) => {
+            event.dataTransfer.setData('note', note.id);
+        });
         // 如果是当前正在编辑的笔记，更新样式
         if (note.id === this.currentNote){
             node.classList.add("active");
@@ -429,8 +437,50 @@ class NoteManager{
         node.onclick = () => {
             this.selectCategory(category.id);
         }
+        this.registerCategoryDragEvent(node, category.id);
+
         this.categoryDict.set(category.id, node);
         this.categorySpace.appendChild(node);
+    }
+
+    // 注册拖拽响应函数
+    registerCategoryDragEvent(element, category){
+        element.addEventListener('dragover', (event) => {
+            event.preventDefault();  // 必须阻止默认行为才能触发drop事件
+            element.classList.add('dragover');
+        });
+
+        element.addEventListener('dragleave', () => {
+            element.classList.remove('dragover');
+        });
+
+        element.addEventListener('drop', (event) => {
+            event.preventDefault();
+            element.classList.remove('dragover');
+            const note = Number(event.dataTransfer.getData('note'));
+            this.dragCategoryHandler(note, category);
+        });
+    }
+
+    // 拽托处理
+    dragCategoryHandler(note, category){
+        if (category === CATEGORY_DUSTBIN){
+            msgBox.show("⚠ 确定要删除这条笔记？", "笔记将放置到回收站中，您稍后可以在回收站中找回。", (op) => {
+                if (!op){
+                    return;
+                }
+                noteManager.moveNoteCategory(note, CATEGORY_DUSTBIN);
+                if (note === this.currentNote){
+                    noteManager.selectNote(null);
+                }
+            }, "移至回收站", "我再想想");
+        }else{
+            const oldCategory = this.getNoteById(note).category;
+            this.moveNoteCategory(note, category);
+            if (note === this.currentNote && oldCategory === CATEGORY_DUSTBIN){
+                noteManager.selectNote(null);
+            }
+        }
     }
 }
 
