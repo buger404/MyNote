@@ -73,13 +73,24 @@ class InputBox{
 class NoteManager{
     categoryDict = new Map();
     noteDict = new Map();
+    noteDirty = new Map();
     lastSelectedNote;
     lastSelectedCategory;
+    currentCategory;
+    currentNote = "";
 
     constructor(storageKey) {
         this.categoryTemplate = document.getElementById("custom-category-template");
         this.categorySpace = document.getElementById("category-content-panel");
         this.noteContainer = document.getElementById("note-content-panel");
+        this.noteTitle = document.getElementById("note-title");
+        this.noteEditTime = document.getElementById("note-edit-time");
+        this.noteInfo = document.getElementById("note-info");
+        this.createNoteButton = document.getElementById("note-create-button");
+        this.editorTextArea = mdEditor.codemirror.display.wrapper.querySelector("textarea");
+
+        this.noneEditPanel = document.getElementById("none-edit-panel");
+        this.editPanel = document.getElementById("edit-panel");
 
         this.categoryStorageKey = storageKey + "-category";
         this.noteStorageKey = storageKey + "-note";
@@ -96,12 +107,114 @@ class NoteManager{
             }
         }
         this.selectCategory("all");
+
+        mdEditor.codemirror.on("change", () => this.updateDirtyState());
+    }
+
+    updateDirtyState(){
+        if (this.currentNote !== ""){
+            this.noteDirty.set(this.currentNote, true);
+        }
+    }
+
+    checkCurrentNoteDirty(callback){
+        if (this.currentNote === ""){
+            callback();
+            return;
+        }
+        if (this.noteDirty.get(this.currentNote)){
+            msgBox.show("当前笔记未保存", "内容尚未保存，您确定要离开吗？", (operation) => {
+                if (operation){
+                    this.noteDirty.set(this.currentNote, false);
+                    callback();
+                }
+            }, "放弃更改", "取消");
+        }else{
+            callback();
+        }
+    }
+
+    getNoteById(id) {
+        return this.notes.find(x => x.id === id);
+    }
+
+    updateCurrentNote(){
+        const note = this.getNoteById(this.currentNote);
+        if (note) {
+            Object.assign(note,{
+                title: this.noteTitle.value,
+                content: mdEditor.value(),
+                lastModified: new Date().toISOString()
+            });
+            this.noteDirty.set(this.currentNote, false);
+            this.noteDict.get(this.currentNote).innerText = note.title || "未命名笔记";
+            this.saveNotes();
+            this.selectNote(null);
+        }
+    }
+
+    selectNote(note){
+        if (this.currentNote === note?.id){
+            return;
+        }
+        this.checkCurrentNoteDirty(() => {
+            if (this.lastSelectedNote != null){
+                this.lastSelectedNote.classList.remove("active");
+            }
+            if (note == null){
+                this.lastSelectedNote = null;
+                this.currentNote = "";
+                this.noneEditPanel.style.display = "flex";
+                this.editPanel.style.display = "none";
+                return;
+            }
+            this.lastSelectedNote = this.noteDict.get(note.id);
+            this.lastSelectedNote.classList.add("active");
+            this.currentNote = note.id;
+            this.noneEditPanel.style.display = "none";
+            this.editPanel.style.display = "flex";
+            this.noteTitle.value = note.title;
+            mdEditor.value(note.content);
+            this.noteDirty.set(note.id, false);
+            this.editorTextArea.disabled = note.category === "dustbin";
+
+            mdEditor.codemirror.refresh();
+
+            this.noteEditTime.innerText = `最后编辑时间：${note.lastModified}`;
+        });
     }
 
     loadNotes(){
         const noteJson = localStorage.getItem(this.noteStorageKey);
         this.notes = noteJson ? JSON.parse(noteJson) : [];
+        for(let note of this.notes){
+            this.noteDirty.set(note.id, false);
+        }
+    }
 
+    saveNotes(){
+        localStorage.setItem(this.noteStorageKey, JSON.stringify(this.notes));
+    }
+
+    createNote(title = "", content = "") {
+        let category = this.currentCategory;
+        if (category === "all"){
+            category = "other";
+        }
+        const note = {
+            id: Date.now(), // 唯一ID
+            category: category,
+            title: title,
+            content: content,
+            lastModified: new Date().toISOString() // 创建时设置 lastModified
+        };
+        this.noteDirty.set(note.id, false);
+        this.notes.push(note);
+        this.renderNote(note);
+        this.saveNotes();
+        this.selectNote(note);
+        this.noteInfo.innerText = `共 ${this.noteContainer.childNodes.length - 1} 条笔记`;
+        return note;
     }
 
     renderNotes(category){
@@ -109,9 +222,25 @@ class NoteManager{
             note.parentNode.removeChild(note);
         }
         this.noteDict.clear();
-        for(let note of this.notes.find(x => x.category === category)){
-
+        this.currentNote = "";
+        this.lastSelectedNote = null;
+        this.createNoteButton.style.display = (category === "dustbin") ? "none" : "block";
+        let notes = this.notes.filter(x => x.category === category || category === "all");
+        this.noteInfo.innerText = `共 ${notes.length} 条笔记`;
+        for(let note of notes){
+            this.renderNote(note);
         }
+    }
+
+    renderNote(note){
+        var node = document.createElement("p");
+        node.classList.add("note-item")
+        node.innerText = note.title || "未命名笔记";
+        node.onclick = () => {
+            this.selectNote(note);
+        }
+        this.noteDict.set(note.id, node);
+        this.noteContainer.appendChild(node);
     }
 
     selectCategory(id) {
@@ -120,6 +249,7 @@ class NoteManager{
         }
         this.lastSelectedCategory = this.categoryDict.get(id);
         this.lastSelectedCategory.classList.add("active");
+        this.currentCategory = id;
         this.renderNotes(id);
     }
 
@@ -197,8 +327,6 @@ class NoteManager{
 
 var msgBox = new MessageBox(document.getElementById("msgbox"));
 var inputBox = new InputBox(document.getElementById("inputbox"));
-var noneEditPanel = document.getElementById("none-edit-panel");
-var editPanel = document.getElementById("edit-panel");
 
 var noteManager = new NoteManager("myNote");
 
@@ -216,4 +344,12 @@ function createCategory(){
         noteManager.createCategory(name);
         msgBox.show("分类创建成功", "可以将笔记移动至喜欢的分类。");
     }, "创建分类");
+}
+
+function createNote(){
+    noteManager.createNote();
+}
+
+function updateNote(){
+    noteManager.updateCurrentNote();
 }

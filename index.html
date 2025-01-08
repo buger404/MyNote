@@ -9,7 +9,7 @@
 </head>
 <body>
     <!-- 分类栏 -->
-    <div class="column" style="width: 250px;">
+    <div class="column" style="width: 250px; flex-shrink: 0;">
         <div class="category-panel">
             <p id="logo">笔记</p>
             <p id="credit" class="sub-title">222200414 陈志琰</p>
@@ -44,7 +44,7 @@
     </div>
 
     <!-- 笔记栏 -->
-    <div class="column" style="width: 300px; margin-right: 25px;">
+    <div class="column" style="width: 300px; margin-right: 25px; flex-shrink: 0;">
         <div class="panel note-panel">
             <!-- 置顶搜索栏 -->
             <div class="note-search-panel">
@@ -53,21 +53,18 @@
                     <span class="button">搜索</span>
                 </div>
                 <p id="note-info" class="sub-title" style="margin-left: 30px; margin-bottom: 20px;">共 4 条笔记</p>
-                <p class="note-item">+ 创建笔记</p>
+                <p id="note-create-button" class="note-item" onclick="createNote()">+ 创建笔记</p>
             </div>
 
             <!-- 笔记内容存放区 -->
             <div id="note-content-panel" class="note-content-panel">
-                <p class="note-item active">笔记111</p>
-                <p class="note-item">笔记2</p>
-                <p class="note-item">笔记3</p>
-                <p class="note-item">笔记4</p>
+
             </div>
         </div>
     </div>
 
     <!-- 编辑栏 -->
-    <div class="column" style="flex-grow: 1;">
+    <div class="column" style="flex-grow: 1; flex-shrink: 0; max-width: calc(100% - 250px - 300px - 25px);">
         <!-- 未打开编辑 -->
         <div id="none-edit-panel" class="panel edit-panel" style="justify-content: center; text-align: center;">
             <p class="sub-title" style="font-size: 64px;">🌹</p>
@@ -75,15 +72,22 @@
             <p class="sub-title">在左侧点击一个笔记开始编辑</p>
         </div>
         <!-- 打开编辑 -->
-        <div id="edit-panel" class="panel edit-panel" style="display: none;">
+        <div id="edit-panel" class="panel edit-panel" style="display: none; flex-direction: column; height: 100%;">
             <input id="note-title" class="title-input" placeholder="未命名笔记" style="width: 100%;">
-            <div style="flex-grow: 1; padding-bottom: 100px;">
-                <textarea id="markdown-editor"></textarea>
+
+            <div style="flex-grow: 1; overflow: hidden; padding-bottom: 100px;">
+                <textarea id="markdown-editor" style="width: 100%; height: 100%;"></textarea>
             </div>
-            <p class="sub-title" style="margin-bottom: 20px;">最后编辑时间：2025/1/7 22:30</p>
-            <div class="row" style="margin-bottom: 10px; justify-content: end;">
+
+            <p id="note-edit-time" class="sub-title" style="margin-bottom: 20px;">最后编辑时间：2025/1/7 22:30</p>
+
+            <div id="edit-dustbin-toolbar" class="row" style="margin-bottom: 10px; justify-content: end; display: none;">
+                <span class="button danger-button loose-button">彻底删除</span>
+                <span class="button loose-button">还原</span>
+            </div>
+            <div id="edit-normal-toolbar" class="row" style="margin-bottom: 10px; justify-content: end;">
                 <span class="button danger-button loose-button">删除</span>
-                <span class="button loose-button">保存</span>
+                <span class="button loose-button" onclick="updateNote()">保存</span>
             </div>
         </div>
     </div>
