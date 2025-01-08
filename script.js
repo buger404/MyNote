@@ -52,8 +52,8 @@ class InputBox{
         this.okBtn.onclick = () => this.finish(this.inputBox.value);
     }
 
-    show(title, callback = null, okBtn = "确定"){
-        this.inputBox.value = "";
+    show(title, callback = null, okBtn = "确定", defaultInput = ""){
+        this.inputBox.value = defaultInput;
 
         this.title.innerText = title;
         this.okBtn.innerText = okBtn;
@@ -72,16 +72,20 @@ class InputBox{
 
 class NoteManager{
     categoryDict = new Map();
+    noteDict = new Map();
+    lastSelectedNote;
     lastSelectedCategory;
 
     constructor(storageKey) {
         this.categoryTemplate = document.getElementById("custom-category-template");
         this.categorySpace = document.getElementById("category-content-panel");
+        this.noteContainer = document.getElementById("note-content-panel");
 
         this.categoryStorageKey = storageKey + "-category";
         this.noteStorageKey = storageKey + "-note";
 
         this.loadCategories();
+        this.loadNotes();
 
         const specialCategories = ["all", "other", "dustbin"];
         for(let category of specialCategories){
@@ -94,12 +98,29 @@ class NoteManager{
         this.selectCategory("all");
     }
 
+    loadNotes(){
+        const noteJson = localStorage.getItem(this.noteStorageKey);
+        this.notes = noteJson ? JSON.parse(noteJson) : [];
+
+    }
+
+    renderNotes(category){
+        for(let note of this.noteDict.values()){
+            note.parentNode.removeChild(note);
+        }
+        this.noteDict.clear();
+        for(let note of this.notes.find(x => x.category === category)){
+
+        }
+    }
+
     selectCategory(id) {
         if (this.lastSelectedCategory != null){
             this.lastSelectedCategory.classList.remove("active");
         }
         this.lastSelectedCategory = this.categoryDict.get(id);
         this.lastSelectedCategory.classList.add("active");
+        this.renderNotes(id);
     }
 
     deleteCategory(id) {
@@ -140,6 +161,18 @@ class NoteManager{
         node.id = "";
         node.style.display = "flex";
         node.querySelector("span").innerText = category.title;
+        node.querySelector(".edit-button").addEventListener("click", (event) => {
+            event.stopPropagation();
+            inputBox.show("修改分类名称", (name) => {
+                if (name == null || name === ""){
+                    msgBox.show("错误", "分类名称不能为空。");
+                    return;
+                }
+                category.title = name;
+                node.querySelector("span").innerText = name;
+                this.saveCategory();
+            }, "确定修改", category.title);
+        });
         node.querySelector(".delete-button").addEventListener("click", (event) => {
             event.stopPropagation();
             msgBox.show("⚠ 确认要删除这个分类？", "该分类下的笔记将移动至【未分类】，此操作不可逆！", (op) => {
@@ -147,6 +180,7 @@ class NoteManager{
                     if (this.lastSelectedCategory === node){
                         this.selectCategory("all");
                     }
+                    this.categoryDict.delete(node);
                     this.deleteCategory(category.id);
                     node.parentNode.removeChild(node);
                     msgBox.show("分类已删除", "");
