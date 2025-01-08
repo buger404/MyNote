@@ -246,6 +246,7 @@ class NoteManager{
             mdEditor.value(note.content);
             this.noteDirty.set(note.id, false); // 由于设置编辑器内容时会触发一次 脏状态 更新，这里要设置一次
             this.editorTextArea.disabled = note.category === CATEGORY_DUSTBIN;
+            this.noteTitle.disabled = note.category === CATEGORY_DUSTBIN;
 
             this.normalEditToolbar.style.display = (note.category === CATEGORY_DUSTBIN) ? "none" : "flex";
             this.dustbinEditToolbar.style.display = (note.category === CATEGORY_DUSTBIN) ? "flex" : "none";
