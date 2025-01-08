@@ -4,6 +4,10 @@ var mdEditor = new SimpleMDE(
         spellChecker: false
     });
 
+const CATEGORY_ALL = "all";
+const CATEGORY_OTHER = "other";
+const CATEGORY_DUSTBIN = "dustbin";
+
 class MessageBox{
     constructor(element){
         this.box = element;
@@ -92,13 +96,16 @@ class NoteManager{
         this.noneEditPanel = document.getElementById("none-edit-panel");
         this.editPanel = document.getElementById("edit-panel");
 
+        this.normalEditToolbar = document.getElementById("edit-normal-toolbar");
+        this.dustbinEditToolbar = document.getElementById("edit-dustbin-toolbar");
+
         this.categoryStorageKey = storageKey + "-category";
         this.noteStorageKey = storageKey + "-note";
 
         this.loadCategories();
         this.loadNotes();
 
-        const specialCategories = ["all", "other", "dustbin"];
+        const specialCategories = [CATEGORY_ALL, CATEGORY_OTHER, CATEGORY_DUSTBIN];
         for(let category of specialCategories){
             let node = document.getElementById("category-" + category);
             this.categoryDict.set(category, node);
@@ -106,9 +113,38 @@ class NoteManager{
                 this.selectCategory(category);
             }
         }
-        this.selectCategory("all");
+        this.selectCategory(CATEGORY_ALL);
 
         mdEditor.codemirror.on("change", () => this.updateDirtyState());
+    }
+
+    deleteNote(id){
+        const index = this.notes.findIndex(x => x.id === id);
+        if (index !== -1) {
+            this.notes.splice(index, 1);
+            this.saveNotes();
+            return true;
+        }
+        return false;
+    }
+
+    moveNoteCategory(noteId, category){
+        const note = this.getNoteById(noteId);
+        if (note) {
+            if (note.category === category) {
+                return;
+            }
+            Object.assign(note,{
+                category: category
+            });
+            let render = this.noteDict.get(noteId);
+            if (render && (this.currentCategory !== CATEGORY_ALL || category === CATEGORY_DUSTBIN)){
+                render.parentNode.removeChild(render);
+                this.noteDict.delete(noteId);
+            }
+            this.saveNotes();
+            this.updateNoteInfo();
+        }
     }
 
     updateDirtyState(){
@@ -179,7 +215,10 @@ class NoteManager{
             this.noteTitle.value = note.title;
             mdEditor.value(note.content);
             this.noteDirty.set(note.id, false);
-            this.editorTextArea.disabled = note.category === "dustbin";
+            this.editorTextArea.disabled = note.category === CATEGORY_DUSTBIN;
+
+            this.normalEditToolbar.style.display = (note.category === CATEGORY_DUSTBIN) ? "none" : "flex";
+            this.dustbinEditToolbar.style.display = (note.category === CATEGORY_DUSTBIN) ? "flex" : "none";
 
             mdEditor.codemirror.refresh();
 
@@ -199,10 +238,14 @@ class NoteManager{
         localStorage.setItem(this.noteStorageKey, JSON.stringify(this.notes));
     }
 
+    updateNoteInfo(){
+        this.noteInfo.innerText = `共 ${this.noteContainer.childNodes.length - 1} 条笔记`;
+    }
+
     createNote(title = "", content = "") {
         let category = this.currentCategory;
-        if (category === "all"){
-            category = "other";
+        if (category === CATEGORY_ALL){
+            category = CATEGORY_OTHER;
         }
         const note = {
             id: Date.now(), // 唯一ID
@@ -216,7 +259,7 @@ class NoteManager{
         this.renderNote(note);
         this.saveNotes();
         this.selectNote(note);
-        this.noteInfo.innerText = `共 ${this.noteContainer.childNodes.length - 1} 条笔记`;
+        this.updateNoteInfo();
         return note;
     }
 
@@ -225,8 +268,12 @@ class NoteManager{
             note.parentNode.removeChild(note);
         }
         this.noteDict.clear();
-        this.createNoteButton.style.display = (category === "dustbin") ? "none" : "block";
-        let notes = this.notes.filter(x => x.category === category || category === "all");
+        let notes = this.notes.filter(x => {
+            if (category === CATEGORY_ALL){
+                return x.category !== CATEGORY_DUSTBIN;
+            }
+            return x.category === category;
+        });
         this.noteInfo.innerText = `共 ${notes.length} 条笔记`;
         for(let note of notes){
             this.renderNote(note);
@@ -255,6 +302,7 @@ class NoteManager{
         this.lastSelectedCategory = this.categoryDict.get(id);
         this.lastSelectedCategory.classList.add("active");
         this.currentCategory = id;
+        this.createNoteButton.style.display = (id === CATEGORY_DUSTBIN) ? "none" : "block";
         this.renderNotes(id);
     }
 
@@ -263,6 +311,10 @@ class NoteManager{
         if (index !== -1) {
             this.categories.splice(index, 1);
             this.saveCategory();
+            for(let note of this.notes.filter(x => x.category === id)){
+                note.category = CATEGORY_OTHER;
+            }
+            this.saveNotes();
             return true;
         }
         return false;
@@ -313,7 +365,7 @@ class NoteManager{
             msgBox.show("⚠ 确认要删除这个分类？", "该分类下的笔记将移动至【未分类】，此操作不可逆！", (op) => {
                 if (op){
                     if (this.lastSelectedCategory === node){
-                        this.selectCategory("all");
+                        this.selectCategory(CATEGORY_ALL);
                     }
                     this.categoryDict.delete(node);
                     this.deleteCategory(category.id);
@@ -335,12 +387,6 @@ var inputBox = new InputBox(document.getElementById("inputbox"));
 
 var noteManager = new NoteManager("myNote");
 
-function deleteNote(){
-    msgBox.show("⚠ 确认要删除这条笔记？", "此操作不可逆！", (op) => {
-        msgBox.show("你选择了", op);
-    }, "确定删除", "我再想想");
-}
-
 function createCategory(){
     inputBox.show("请输入新分类的名称", (name) => {
         if (name == null || name === ""){
@@ -357,4 +403,40 @@ function createNote(){
 
 function updateNote(){
     noteManager.updateCurrentNote();
+}
+
+function moveCurrentNoteToDustbin(){
+    noteManager.checkCurrentNoteDirty(() => {
+        msgBox.show("⚠ 确定要删除这条笔记？", "笔记将放置到回收站中，您稍后可以在回收站中找回。", (op) => {
+            if (!op){
+                return;
+            }
+            noteManager.moveNoteCategory(noteManager.currentNote, CATEGORY_DUSTBIN);
+            noteManager.selectNote(null);
+        }, "移至回收站", "我再想想");
+    });
+}
+
+function moveOutCurrentNoteFromDustbin(){
+    noteManager.checkCurrentNoteDirty(() => {
+        noteManager.moveNoteCategory(noteManager.currentNote, CATEGORY_OTHER);
+        noteManager.selectNote(null);
+        msgBox.show("还原成功", "已将当前笔记移至未分类笔记。");
+    });
+}
+
+function deleteCurrentNote(){
+    msgBox.show("⚠ 确认要删除这条笔记？", "此操作不可逆！", (op) => {
+        if (!op){
+            return;
+        }
+        noteManager.deleteNote(noteManager.currentNote);
+        noteManager.noteDirty.set(noteManager.currentNote, false);
+        let node = noteManager.noteDict.get(noteManager.currentNote);
+        if (node){
+            node.parentNode.removeChild(node);
+            noteManager.noteDict.delete(noteManager.currentNote);
+        }
+        noteManager.selectNote(null);
+    }, "确定删除", "我再想想");
 }
