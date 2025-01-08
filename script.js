@@ -92,6 +92,8 @@ class NoteManager{
     currentCategory;            // 当前分类 ID
     currentNote = "";    // 当前笔记 ID
 
+    searchKeyword = "";  // 搜索关键字
+
     constructor(storageKey) {
         this.categoryTemplate = document.getElementById("custom-category-template");
         this.categorySpace = document.getElementById("category-content-panel");
@@ -299,6 +301,13 @@ class NoteManager{
         }
         this.noteDict.clear();
         let notes = this.notes.filter(x => {
+            // 搜索关键字
+            if (this.searchKeyword !== ""){
+                if (!x.title.toLowerCase().includes(this.searchKeyword) &&
+                    !x.content.toLowerCase().includes(this.searchKeyword)) {
+                    return false;
+                }
+            }
             // 由于 回收站 是一个特殊分类，全部分类要过滤掉 回收站
             if (category === CATEGORY_ALL){
                 return x.category !== CATEGORY_DUSTBIN;
@@ -428,6 +437,8 @@ class NoteManager{
 var msgBox = new MessageBox(document.getElementById("msgbox"));
 var inputBox = new InputBox(document.getElementById("inputbox"));
 
+var searchInput = document.getElementById("note-search");
+
 var noteManager = new NoteManager("myNote");
 
 // 创建分类
@@ -484,8 +495,14 @@ function deleteCurrentNote(){
         let node = noteManager.noteDict.get(noteManager.currentNote);
         if (node){
             node.parentNode.removeChild(node);
-            noteManager.noteDict.delete(noteManager.currentNote);
         }
+        noteManager.noteDict.delete(noteManager.currentNote);
         noteManager.selectNote(null);
     }, "确定删除", "我再想想");
+}
+
+// 更新搜索
+function updateSearchFilter(){
+    noteManager.searchKeyword = searchInput.value.toLowerCase();
+    noteManager.renderNotes(noteManager.currentCategory);
 }
