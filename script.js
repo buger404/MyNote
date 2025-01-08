@@ -134,6 +134,8 @@ class NoteManager{
 
         // 注册编辑器内容改变回调，更新笔记脏状态
         mdEditor.codemirror.on("change", () => this.updateDirtyState());
+
+        this.noteTitle.onchange = () => this.updateDirtyState();
     }
 
     // 删除笔记
