@@ -71,20 +71,93 @@ class InputBox{
 }
 
 class NoteManager{
-    constructor() {
-        this.categoryTemplate = document.getElementById("custom-category-template");
+    categoryDict = new Map();
+    lastSelectedCategory;
 
-        for(var i = 0; i < 5; i++){
-            this.renderCategory("测试分类" + i);
+    constructor(storageKey) {
+        this.categoryTemplate = document.getElementById("custom-category-template");
+        this.categorySpace = document.getElementById("custom-category-space");
+
+        this.categoryStorageKey = storageKey + "-category";
+        this.noteStorageKey = storageKey + "-note";
+
+        this.loadCategories();
+
+        const specialCategories = ["all", "other", "dustbin"];
+        for(let category of specialCategories){
+            let node = document.getElementById("category-" + category);
+            this.categoryDict.set(category, node);
+            node.onclick = () => {
+                this.selectCategory(category);
+            }
+        }
+        this.selectCategory("all");
+    }
+
+    selectCategory(id) {
+        if (this.lastSelectedCategory != null){
+            this.lastSelectedCategory.classList.remove("active");
+        }
+        this.lastSelectedCategory = this.categoryDict.get(id);
+        this.lastSelectedCategory.classList.add("active");
+    }
+
+    deleteCategory(id) {
+        const index = this.categories.findIndex(x => x.id === id);
+        if (index !== -1) {
+            this.categories.splice(index, 1);
+            this.saveCategory();
+            return true;
+        }
+        return false;
+    }
+
+    createCategory(title){
+        const category = {
+            id: Date.now(),
+            title: title
+        };
+        this.categories.push(category);
+        this.saveCategory();
+        this.renderCategory(category);
+        return category;
+    }
+
+    loadCategories(){
+        const categoryJson = localStorage.getItem(this.categoryStorageKey);
+        this.categories = categoryJson ? JSON.parse(categoryJson) : [];
+        for(let category of this.categories){
+            this.renderCategory(category);
         }
     }
 
-    renderCategory(title){
+    saveCategory(){
+        localStorage.setItem(this.categoryStorageKey, JSON.stringify(this.categories));
+    }
+
+    renderCategory(category){
         var node = this.categoryTemplate.cloneNode(true);
         node.id = "";
         node.style.display = "flex";
-        node.querySelector("span").innerText = title;
-        this.categoryTemplate.insertAdjacentElement('afterend', node);
+        node.querySelector("span").innerText = category.title;
+        node.querySelector(".delete-button").addEventListener("click", (event) => {
+            event.stopPropagation();
+            msgBox.show("⚠ 确认要删除这个分类？", "该分类下的笔记将移动至【未分类】，此操作不可逆！", (op) => {
+                if (op){
+                    if (this.lastSelectedCategory === node){
+                        this.selectCategory("all");
+                    }
+                    this.deleteCategory(category.id);
+                    node.parentNode.removeChild(node);
+                    msgBox.show("分类已删除", "");
+                }
+            }, "确定删除", "我再想想");
+        });
+        node.onclick = () => {
+            this.selectCategory(category.id);
+        }
+        this.categoryDict.set(category.id, node);
+        this.categorySpace.insertAdjacentElement('beforebegin', node);
     }
 }
 
@@ -93,10 +166,9 @@ var inputBox = new InputBox(document.getElementById("inputbox"));
 var noneEditPanel = document.getElementById("none-edit-panel");
 var editPanel = document.getElementById("edit-panel");
 
-var noteManager = new NoteManager();
+var noteManager = new NoteManager("myNote");
 
-function deleteNote(event){
-    event.stopPropagation();
+function deleteNote(){
     msgBox.show("⚠ 确认要删除这条笔记？", "此操作不可逆！", (op) => {
         msgBox.show("你选择了", op);
     }, "确定删除", "我再想想");
@@ -104,6 +176,10 @@ function deleteNote(event){
 
 function createCategory(){
     inputBox.show("请输入新分类的名称", (name) => {
-        msgBox.show("你输入了", name);
+        if (name == null || name === ""){
+            return;
+        }
+        noteManager.createCategory(name);
+        msgBox.show("分类创建成功", "可以将笔记移动至喜欢的分类。");
     }, "创建分类");
 }
