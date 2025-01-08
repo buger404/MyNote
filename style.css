@@ -29,8 +29,7 @@ body{
     min-width: 1024px;
     height: 100%;
     margin: 0;
-    padding: 25px;
-    gap: 25px;
+    padding: 25px 25px 25px 0;
     overflow-y: hidden;
 }
 
@@ -113,8 +112,21 @@ body{
     box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
 }
 
+.note-search-panel{
+    background-color: white;
+    border-radius: 10px;
+}
+
+.note-content-panel{
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
 .note-panel{
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
 }
 
 .edit-panel{
@@ -126,6 +138,12 @@ body{
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    padding: 0 25px;
+    overflow-y: auto;
+}
+
+.category-content-panel{
+
 }
 
 .note-item{
@@ -158,6 +176,7 @@ body{
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .category-button span{

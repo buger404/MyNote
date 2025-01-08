@@ -76,7 +76,7 @@ class NoteManager{
 
     constructor(storageKey) {
         this.categoryTemplate = document.getElementById("custom-category-template");
-        this.categorySpace = document.getElementById("custom-category-space");
+        this.categorySpace = document.getElementById("category-content-panel");
 
         this.categoryStorageKey = storageKey + "-category";
         this.noteStorageKey = storageKey + "-note";
@@ -157,7 +157,7 @@ class NoteManager{
             this.selectCategory(category.id);
         }
         this.categoryDict.set(category.id, node);
-        this.categorySpace.insertAdjacentElement('beforebegin', node);
+        this.categorySpace.appendChild(node);
     }
 }
 
